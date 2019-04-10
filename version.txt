@@ -1,2 +1,5 @@
 v 0.1
-	Initial version - functioning app.
+	Implemented cycle counter.
+	Changed array length, max array value, speed inputs into range.
+	Speed range updates speed on runtime.
+	Input min, max, default values are set from script.

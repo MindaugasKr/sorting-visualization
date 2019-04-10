@@ -67,11 +67,16 @@ class SortingVisualizer extends SortingAlgorithms {
 
     // Constants
     this.ARR_LENGTH_MIM = 2;
-    this.ARR_LENGTH_MAX = 500; 
+    this.ARR_LENGTH_MAX = this.elemVisualizer.width; // with max elements bar width is 1px;
+    this.ARR_LENGTH_DEFAULT = this.elemVisualizer.width;
+    //
     this.SPEED_MIN = 1;
-    this.SPEED_MAX = 100;
+    this.SPEED_MAX = 1000;
+    this.SPEED_DEFAULT = 1000;
+    //
     this.ARR_MAX_VALUE_MIN = 2;
-    this.ARR_MAX_VALUE_MAX = this.elemVisualizer.width; // with max elements bar width is 1px;
+    this.ARR_MAX_VALUE_MAX = 1000; 
+    this.ARR_MAX_VALUE_DEFAULT = 100; 
 
     // Canvas variables
     this.canvasCtx = this.elemVisualizer.getContext('2d', { alpha: false });
@@ -134,15 +139,6 @@ class SortingVisualizer extends SortingAlgorithms {
       .fill(this.arrMaxValue)
       .map( num => Math.ceil(Math.random()*num) );
   }
-  // !!!
-  // !!!
-  // !!!
-  // !!!
-  // !!!
-  // !!!
-  // !!!
-  // !!!
-  // kazkur klaida, paz su 56 arr elementais
   drawCanvas() {
     let canvasLineWidth, canvasLineWidthHalf, lineYEnd;
 
@@ -173,7 +169,6 @@ class SortingVisualizer extends SortingAlgorithms {
   }
   updateCanvas() {}
   updateStateInHTML() {this.elemState.innerText = this.appState;}
-
   visualizerLoop() {
     this.array = this.arrGenerator.next().value;
     if (this.array) {
@@ -185,7 +180,11 @@ class SortingVisualizer extends SortingAlgorithms {
       clearInterval(this.appInterval);
     }
   }
+  setAppInterval() {
+    this.appInterval = setInterval(this.visualizerLoop.bind(this), 1000/this.speed);
+  }
 
+  // Start / stop
   startApp() {
     if (this.appState == "finished") {
       this.ApplyAndReset();
@@ -193,7 +192,7 @@ class SortingVisualizer extends SortingAlgorithms {
     // will run on states finished, paused, reset
     this.appState = "running";
     this.updateStateInHTML();
-    this.appInterval = setInterval(this.visualizerLoop.bind(this),1000/this.speed);
+    this.setAppInterval();
   }
   stopApp() {
     this.appState = "paused";
@@ -226,10 +225,25 @@ class SortingVisualizer extends SortingAlgorithms {
   __init__() {
     this.populateAlgorithmList();
 
+    // Set input min, max, values.
+    this.elemArrayLen.min = this.ARR_LENGTH_MIM;
+    this.elemArrayLen.max = this.ARR_LENGTH_MAX;
+    this.elemArrayLen.value = this.ARR_LENGTH_DEFAULT;
+    //
+    this.elemMaxVal.min = this.ARR_MAX_VALUE_MIN;
+    this.elemMaxVal.max = this.ARR_MAX_VALUE_MAX;
+    this.elemMaxVal.value = this.ARR_MAX_VALUE_DEFAULT;
+    //
+    this.elemSpeed.min =  this.SPEED_MIN;
+    this.elemSpeed.max = this.SPEED_MAX;
+    this.elemSpeed.value = this.SPEED_DEFAULT;
+
     // Add event listeners for input elements
-    this.elemArrayLen.addEventListener("blur", (e) => {this.enforceValue(e, this.ARR_LENGTH_MIM, this.ARR_LENGTH_MAX)});
-    this.elemMaxVal.addEventListener("blur", (e) => {this.enforceValue(e, this.ARR_MAX_VALUE_MIN, this.ARR_MAX_VALUE_MAX)});
-    this.elemSpeed.addEventListener("blur", (e) => {this.enforceValue(e, this.SPEED_MIN, this.SPEED_MAX)});
+    this.elemSpeed.addEventListener("input", (e) => {
+      this.speed = e.target.value;
+      clearInterval(this.appInterval);
+      this.setAppInterval();
+    } );
 
     // Add event listeners for button elements
     this.elemBtnApplyAndReset.addEventListener("click", this.ApplyAndReset.bind(this));
