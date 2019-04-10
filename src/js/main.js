@@ -14,7 +14,7 @@ class SortingAlgorithms {
               arr[y] = arr[y + 1];
               arr[y + 1] = temp;
             }
-            yield arr;
+            yield [arr, y, y+1];
           }
         }
       }},
@@ -58,6 +58,8 @@ class SortingVisualizer extends SortingAlgorithms {
     this.appState = undefined; // possible states: "running", "finished", "paused", "reset". Used to make in function decisions and to inform user of what is happening;
     this.arrGenerator = undefined;
     this.appInterval = undefined;
+    this.barFullWidth = undefined;
+    this.barPreviousRed = undefined;
 
     // Options
     this.activeAlgorithm = undefined;
@@ -67,8 +69,8 @@ class SortingVisualizer extends SortingAlgorithms {
 
     // Constants
     this.ARR_LENGTH_MIM = 2;
-    this.ARR_LENGTH_MAX = this.elemVisualizer.width; // with max elements bar width is 1px;
-    this.ARR_LENGTH_DEFAULT = this.elemVisualizer.width;
+    this.ARR_LENGTH_MAX = parseInt(this.elemVisualizer.width / 3);
+    this.ARR_LENGTH_DEFAULT = this.ARR_LENGTH_MAX;
     //
     this.SPEED_MIN = 1;
     this.SPEED_MAX = 1000;
@@ -139,43 +141,79 @@ class SortingVisualizer extends SortingAlgorithms {
       .fill(this.arrMaxValue)
       .map( num => Math.ceil(Math.random()*num) );
   }
-  drawCanvas() {
-    let canvasLineWidth, canvasLineWidthHalf, lineYEnd;
+  drawLine(index, removeLine, marked, value=this.array[index]) {
+    let lineYEnd;
+    let increment = parseInt(index) + 1;
 
+    if (removeLine) {
+      this.canvasCtx.strokeStyle = "white";
+      this.canvasCtx.lineWidth = this.barFullWidth;
+      
+      lineYEnd = 0;
+    } else {
+      this.canvasCtx.strokeStyle = "black";
+      this.canvasCtx.lineWidth = this.barFullWidth / 2;
+
+      lineYEnd = Math.ceil( this.elemVisualizer.height - (this.elemVisualizer.height * value / this.canvasArrMaxValue) );
+    }
+    if (marked) {this.canvasCtx.strokeStyle = "red";}
+
+    this.canvasCtx.beginPath();
+    this.canvasCtx.moveTo(increment * this.barFullWidth - this.barFullWidth/2, this.elemVisualizer.height);
+    this.canvasCtx.lineTo(increment * this.barFullWidth - this.barFullWidth/2, lineYEnd);
+    this.canvasCtx.stroke();
+  }
+  // Changes bar color from marked to default
+  unmarkBar() {
+    this.drawLine(this.barPreviousRed[1], true, false,  this.barPreviousRed[0]);
+    this.drawLine(this.barPreviousRed[1], false, false, this.barPreviousRed[0]);
+    this.barPreviousRed = undefined;
+  }
+  drawCanvas() {
     // Calculates line width
-    canvasLineWidth = Math.floor( this.elemVisualizer.width / this.array.length );
-    if (canvasLineWidth < 1) { canvasLineWidth = 1;}
-    // Calculate half of canvasLineWidth, for loop calculations
-    canvasLineWidthHalf = Math.floor(canvasLineWidth / 2);
+    this.barFullWidth = this.elemVisualizer.width / this.array.length;
 
     // Gets max value of array, for line height calculations
     this.canvasArrMaxValue = Math.max(...this.array);
 
-    // Canvas setup
+    // Clear background
     this.canvasCtx.fillStyle = "white";
     this.canvasCtx.fillRect(0, 0, this.elemVisualizer.width, this.elemVisualizer.height);
-    //
-    this.canvasCtx.fillStyle = "black";
-    this.canvasCtx.lineWidth = canvasLineWidth;
 
     // Draw lines
     for (let n in this.array) {
-      this.canvasCtx.beginPath();
-      this.canvasCtx.moveTo(n*canvasLineWidth + canvasLineWidthHalf, this.elemVisualizer.height);
-      lineYEnd = Math.ceil( this.elemVisualizer.height - (this.elemVisualizer.height * this.array[n] / this.canvasArrMaxValue) );
-      this.canvasCtx.lineTo(n*canvasLineWidth + canvasLineWidthHalf, lineYEnd);
-      this.canvasCtx.stroke();
+      this.drawLine(n, false, false);
     }
   }
-  updateCanvas() {}
+  updateCanvas(genValues) {
+    // Delete previous red
+    // Redraw previous red as black
+    if (this.barPreviousRed) {
+      this.unmarkBar();
+    }
+
+    // Delete swapped bars
+    this.drawLine(genValues[1], true, false);
+    this.drawLine(genValues[2], true, false);
+
+    // Draw swapped bars
+    this.drawLine(genValues[1], false, false);
+    this.drawLine(genValues[2], false, true);
+
+    // Save red bar value and index for changing color back to black on next cycle
+    this.barPreviousRed = [this.array[genValues[2]], genValues[2]];
+  }
   updateStateInHTML() {this.elemState.innerText = this.appState;}
   visualizerLoop() {
-    this.array = this.arrGenerator.next().value;
-    if (this.array) {
+    let genValues = this.arrGenerator.next().value;
+    if (genValues) {
+      this.array = genValues[0];
       this.elemCycle.innerText = parseInt(this.elemCycle.innerText) + 1;
-      this.drawCanvas();
+      // this.drawCanvas();
+      this.updateCanvas(genValues);
     } else {
       this.appState = "finished";
+      this.unmarkBar();
       this.updateStateInHTML();
       clearInterval(this.appInterval);
     }
@@ -213,6 +251,7 @@ class SortingVisualizer extends SortingAlgorithms {
   ApplyAndReset() {
     if (this.appState == "running") {
       this.stopApp()}
+    if (this.barPreviousRed) {this.unmarkBar();}
     this.elemCycle.innerText = 0;
     this.appState = "reset";
     this.updateStateInHTML();
@@ -241,9 +280,11 @@ class SortingVisualizer extends SortingAlgorithms {
     // Add event listeners for input elements
     this.elemSpeed.addEventListener("input", (e) => {
       this.speed = e.target.value;
-      clearInterval(this.appInterval);
-      this.setAppInterval();
-    } );
+      if (this.appState == "running") {
+        clearInterval(this.appInterval);
+        this.setAppInterval();
+      }
+    });
 
     // Add event listeners for button elements
     this.elemBtnApplyAndReset.addEventListener("click", this.ApplyAndReset.bind(this));

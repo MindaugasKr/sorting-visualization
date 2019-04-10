@@ -3,3 +3,11 @@ v 0.1
 	Changed array length, max array value, speed inputs into range.
 	Speed range updates speed on runtime.
 	Input min, max, default values are set from script.
+
+v 0.2
+	Fixed drawing issues with variable empty space at right side.
+	Modified how bars are drawn. Now there is gap between bars.
+	Modified generator return value.
+	Implemented updateCanvas.
+	Moved bar is now colored red.
+	Fixed speed control adding additional interval.
