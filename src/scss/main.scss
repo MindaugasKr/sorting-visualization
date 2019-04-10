@@ -1,0 +1,27 @@
+/*------------------------------------*\
+  #SECTION- reset / changing defoults
+\*------------------------------------*/
+
+@import "__resets.scss";
+
+/*------------------------------------*\
+  #SECTION- music player
+\*------------------------------------*/
+
+
+body {
+  padding: 20px 50px;
+}
+
+.visualizer {
+  outline: solid 1px black;
+  background-color: white;
+  margin: 30px 0;
+}
+
+.options {
+
+  &__sub-block {
+    display: inline-block;
+  }
+}
