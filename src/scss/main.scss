@@ -5,23 +5,99 @@
 @import "__resets.scss";
 
 /*------------------------------------*\
-  #SECTION- music player
+  #SECTION- visualizer player
 \*------------------------------------*/
+
+// .inline-block {
+//   display: inline-block;
+// }
+// .force-wrap {
+//   white-space: pre;
+// }
+.relative {
+  position: relative;
+}
+
+
+
+
+html {
+  font-family: "Courier New", Courier, monospace;
+}
 
 
 body {
-  padding: 20px 50px;
+  padding: 15px 5px;
+  //text-align: center;
+  background-color: #2b2b2b;
+  color: white;
 }
+
+
+.container {
+  margin: auto;
+  width: 1000px;
+  //background-color: yellow;
+}
+
 
 .visualizer {
   outline: solid 1px black;
   background-color: white;
-  margin: 30px 0;
+  margin: 2px 0 25px;
 }
 
+
+.info {
+  margin-bottom: 10px;
+
+  &__sub-block {
+    width: 150px;
+    display: inline-block;
+    //background-color: magenta;
+
+    &:nth-of-type(2) 	 {
+      width: 200px;
+    }
+  }
+}
+
+
 .options {
+  //text-align: center;
+
+  //margin: 20px 0;
+  //float: right;
+  position: absolute;
+  top: 0;
+  right: 0;
 
   &__sub-block {
     display: inline-block;
+    vertical-align: text-top;
+    text-align: center;
+    padding-left: 7px;
+  }
+  &__name {
+    display: block;
+    margin-bottom: 7px;
+  }
+  &__opt {
+    display: block;
+  }
+  &__current-value {
+    display: block;
+  }
+}
+
+
+.btn {
+  padding: 4px 8px;
+  background-color: orange;
+  font-weight: bold;
+  border: none;
+
+  &:hover {
+    background-color: rgb(255, 195, 71);
   }
 }

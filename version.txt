@@ -21,3 +21,8 @@ v 0.4
 	Modified heap sort to be able to color swapped bars and corectly count swaps.
 	Max array value range now is have logarithmic curve instead of linear.
 
+v 0.5
+	Update styling.
+	Added counter name.
+	Range current values are now displayed on screen.
+

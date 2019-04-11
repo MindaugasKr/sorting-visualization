@@ -12,55 +12,65 @@
   
 
 
+  <div class="container">
 
 
-  <h1>SORTING VISUALIZATION</h1>
+
+    <h1>SORTING VISUALIZATION</h1>
 
 
-  <canvas class="visualizer" width="1000px" height="400px"></canvas>
+    <canvas class="visualizer" width="1000px" height="400px"></canvas>
+  
+  
+    <div class="relative">
+
+      <div class="info">
+        <div class="info__sub-block">
+          State: <span class="state-name-js"></span>
+        </div>
+        <div class="info__sub-block">
+          Swap count: <span class="cycle-no-js"></span>
+        </div>
+      </div>
+
+      <div class="btn-container">
+        <button  class="btn  btn-start-stop-js">Start / Stop</button>
+        <button  class="btn  btn-apply-changes-js">Apply changes / Reset</button>
+      </div>
 
 
-  <div>
-    <span class="state-name-js"></span>
-    <span class="cycle-no-js"></span>
+      <div class="options">
+  
+        <div class="options__sub-block">
+          <span class="options__name">Algorythm</span>
+          <select name="" id="" class="options__opt  options__algorythm-js"></select>
+        </div>
+    
+        <div class="options__sub-block">
+          <span class="options__name">Array length</span>
+          <input  class="options__opt  options__array-length-js"  type="range">
+          <span class="options__current-value  options__current-value-arr-len-js">Dummy text</span>
+        </div>
+    
+        <div class="options__sub-block">
+          <span class="options__name">Max. value</span>
+          <input  class="options__opt  options__max-value-js"  type="range">
+          <span class="options__current-value  options__current-value-max-val-js">Dummy text</span>
+        </div>
+    
+        <div class="options__sub-block">
+          <span class="options__name">Speed</span>
+          <input class="options__opt  options__speed-js"  type="range">
+          <span class="options__current-value  options__current-value-speed-js">Dummy text</span>
+        </div>
+    
+      </div>
+
+
+    </div>
+
+
   </div>
-
-
-  <div class="options">
-
-    <div class="options__sub-block">
-      <span>Algorythm:</span>
-      <select name="" id="" class="options__algorythm-js">
-      </select>
-    </div>
-
-    <div class="options__sub-block">
-      <span>Array length:</span>
-      <!-- <input type="text"  class="options__array-length-js"  value="50"> -->
-      <input  class="options__array-length-js"  type="range">
-    </div>
-
-    <div class="options__sub-block">
-      <span>Max. value</span>
-      <!-- <input type="text"  class="options__max-value-js"  value="100"> -->
-      <input  class="options__max-value-js"  type="range">
-    </div>
-
-    <div class="options__sub-block">
-      <span>Speed</span>
-      <!-- <input type="text"  class="options__speed-js"  value="1"> -->
-      <input class="options__speed-js"  type="range">
-    </div>
-
-  </div>
-
-
-  <div class="btn-box">
-    <button  class="btn-start-stop-js">Start / Stop</button>
-    <button  class="btn-apply-changes-js">Apply changes / Reset</button>
-  </div>
-
-
 
 
 

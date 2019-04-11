@@ -35,7 +35,7 @@ class SortingAlgorithms {
             } 
             arr[j + 1] = key; 
             
-            yield [arr, j, j+1];
+            yield [arr, i, j+1];
             // yield [arr, j+1, j];
           }
         },
@@ -128,7 +128,12 @@ class SortingVisualizer extends SortingAlgorithms {
               elemNameSpeed = ".options__speed-js",
               
               elemNameBtnSartStop = ".btn-start-stop-js",
-              elemNameBtnApplyAndReset = ".btn-apply-changes-js") {
+              elemNameBtnApplyAndReset = ".btn-apply-changes-js",
+
+              elemNameCurValArrLen = ".options__current-value-arr-len-js",
+              elemNameCurValMaxVal = ".options__current-value-max-val-js",
+              elemNameCurValSpeed = ".options__current-value-speed-js"
+              ) {
     super();
 
     // DOM elements
@@ -144,6 +149,10 @@ class SortingVisualizer extends SortingAlgorithms {
 
     this.elemBtnSartStop = document.querySelector(elemNameBtnSartStop);
     this.elemBtnApplyAndReset = document.querySelector(elemNameBtnApplyAndReset);
+    
+    this.elemCurValArrLen = document.querySelector(elemNameCurValArrLen);
+    this.elemCurValMaxVal = document.querySelector(elemNameCurValMaxVal);
+    this.elemCurValSpeed = document.querySelector(elemNameCurValSpeed);
 
 
     // App variables
@@ -166,7 +175,7 @@ class SortingVisualizer extends SortingAlgorithms {
     this.ARR_LENGTH_DEFAULT = this.ARR_LENGTH_MAX;
     //
     this.SPEED_MIN = 1;
-    this.SPEED_MAX = 100;
+    this.SPEED_MAX = 60;
     this.SPEED_DEFAULT = this.SPEED_MAX;
     //
     this.ARR_MAX_VALUE_MIN = 2;
@@ -177,6 +186,9 @@ class SortingVisualizer extends SortingAlgorithms {
     this.canvasCtx = this.elemVisualizer.getContext('2d', { alpha: false });
     this.canvasLineWidth = undefined;
     this.canvasArrMaxValue = undefined;
+    this.canvasColorBackground = "rgb(75, 75, 75)";
+    this.canvasColorBar = "orange";
+    this.canvasColorBarMarked = "rgb(0, 232, 255)";
  
 
     this.__init__();
@@ -257,15 +269,15 @@ class SortingVisualizer extends SortingAlgorithms {
     let increment = parseInt(index) + 1;
 
     if (removeLine) {
-      this.canvasCtx.strokeStyle = "white";
+      this.canvasCtx.strokeStyle = this.canvasColorBackground;
       this.canvasCtx.lineWidth = this.barFullWidth;
       
       lineYEnd = 0;
     } else {
       if (marked) {
-        this.canvasCtx.strokeStyle = "red";
+        this.canvasCtx.strokeStyle = this.canvasColorBarMarked;
       } else {
-        this.canvasCtx.strokeStyle = "black";
+        this.canvasCtx.strokeStyle = this.canvasColorBar;
       }
       this.canvasCtx.lineWidth = this.barFullWidth / 2;
 
@@ -296,7 +308,7 @@ class SortingVisualizer extends SortingAlgorithms {
     this.canvasArrMaxValue = Math.max(...this.array);
 
     // Clear background
-    this.canvasCtx.fillStyle = "white";
+    this.canvasCtx.fillStyle = this.canvasColorBackground;
     this.canvasCtx.fillRect(0, 0, this.elemVisualizer.width, this.elemVisualizer.height);
 
     // Draw lines
@@ -321,6 +333,15 @@ class SortingVisualizer extends SortingAlgorithms {
     this.barPreviousRed = [[this.array[genValues[2]], genValues[2]], [this.array[genValues[1]], genValues[1]]];
   }
   updateStateInHTML() {this.elemState.innerText = this.appState;}
+  updateDisplayCurValArrLen() {
+    this.elemCurValArrLen.innerText = this.elemArrayLen.value;
+  }
+  updateDisplayCurValMaxVal() {
+    this.elemCurValMaxVal.innerText = this.elemMaxVal.value;
+  }
+  updateDisplayCurValSpeed() {
+    this.elemCurValSpeed.innerText = `${parseInt(1000 / this.elemSpeed.value)} ms`;
+  }
   visualizerLoop() {
     let genValues = this.arrGenerator.next().value;
     //log(genValues);
@@ -381,6 +402,7 @@ class SortingVisualizer extends SortingAlgorithms {
   __init__() {
     this.populateAlgorithmList();
 
+
     // Set input min, max, values.
     this.elemArrayLen.min = this.ARR_LENGTH_MIM;
     this.elemArrayLen.max = this.ARR_LENGTH_MAX;
@@ -393,6 +415,13 @@ class SortingVisualizer extends SortingAlgorithms {
     this.elemSpeed.min =  this.SPEED_MIN;
     this.elemSpeed.max = this.SPEED_MAX;
     this.elemSpeed.value = this.SPEED_DEFAULT;
+
+
+    // Initial update of on screen current values
+    this.updateDisplayCurValArrLen()
+    this.updateDisplayCurValMaxVal()
+    this.updateDisplayCurValSpeed()
+
 
     // Add event listeners for input elements
     //
@@ -415,9 +444,14 @@ class SortingVisualizer extends SortingAlgorithms {
         this.ApplyAndReset();
       }
     });
-    // Updates App speed on runtime
+    // Update in app current array length displayed value
+    this.elemArrayLen.addEventListener("input", this.updateDisplayCurValArrLen.bind(this) );
+    // Update in app current max array value displayed value
+    this.elemMaxVal.addEventListener("input", this.updateDisplayCurValMaxVal.bind(this) );
+    // Updates App speed on runtime && update in app current speed displayed value
     this.elemSpeed.addEventListener("input", (e) => {
       this.speed = e.target.value;
+      this.updateDisplayCurValSpeed();
       if (this.appState == "running") {
         clearInterval(this.appInterval);
         this.setAppInterval();
