@@ -16,5 +16,8 @@ v 0.3
 	Array length and Max value ranges show result immediately if app is in reset or finished states.
 	Added more sorting algorithms: insertion, heap.
 
-
+v 0.4
+	Both swapped elements are colored.
+	Modified heap sort to be able to color swapped bars and corectly count swaps.
+	Max array value range now is have logarithmic curve instead of linear.
 

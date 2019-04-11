@@ -42,12 +42,11 @@ class SortingAlgorithms {
         // selection() {}
       },
       "Eficient": {
-        // merge() {},
         // credit: https://www.w3resource.com/javascript-exercises/searching-and-sorting-algorithm/searching-and-sorting-algorithm-exercise-3.php
         heap: function*(input) {
 
           var array_length = input.length;
-          let values; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          let gen, values;
 
           function swap(input, index_A, index_B) {
             var temp = input[index_A];
@@ -55,13 +54,14 @@ class SortingAlgorithms {
             input[index_A] = input[index_B];
             input[index_B] = temp;
 
-            return [input, index_A, index_B]; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            return [input, index_A, index_B];
           }
-          function heap_root(input, i) {
+          function* heap_root(input, i) {
             var left = 2 * i + 1;
             var right = 2 * i + 2;
             var max = i;
-            let values;  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+            let values, gen;
 
             if (left < array_length && input[left] > input[max]) {
               max = left;
@@ -72,32 +72,46 @@ class SortingAlgorithms {
             }
 
             if (max != i) {
-              values = swap(input, i, max);  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-              heap_root(input, max);
+              yield swap(input, i, max);
+
+              gen = heap_root(input, max);
+              values = true;
+              while (values) {
+                values = gen.next().value;
+                if (values) {
+                  yield values;
+                }
+              }
             }
-            
-            
-            if (values) {return values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           }
 
 
 
           for (var i = Math.floor(array_length / 2); i >= 0; i -= 1) {
-              values = heap_root(input, i); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-              if (values) {yield values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+              gen = heap_root(input, i);
+              values = true;
+              while (values) {
+                values = gen.next().value;
+                if (values) {
+                  yield values;
+                }
+              }
             }
       
           for (i = input.length - 1; i > 0; i--) {
             yield swap(input, 0, i);
             array_length--;
-          
-          
-            values = heap_root(input, 0); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            if (values) {yield values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            
+        
+            gen = heap_root(input, 0);
+            values = true;
+            while (values) {
+              values = gen.next().value;
+              if (values) {
+                yield values;
+              }
+            }
           }
         },
-        // quick() {}
       }
     }
   }
@@ -152,12 +166,12 @@ class SortingVisualizer extends SortingAlgorithms {
     this.ARR_LENGTH_DEFAULT = this.ARR_LENGTH_MAX;
     //
     this.SPEED_MIN = 1;
-    this.SPEED_MAX = 1000;
-    this.SPEED_DEFAULT = 1000;
+    this.SPEED_MAX = 100;
+    this.SPEED_DEFAULT = this.SPEED_MAX;
     //
     this.ARR_MAX_VALUE_MIN = 2;
     this.ARR_MAX_VALUE_MAX = 1000; 
-    this.ARR_MAX_VALUE_DEFAULT = 100; 
+    this.ARR_MAX_VALUE_DEFAULT = this.ARR_MAX_VALUE_MAX; 
 
     // Canvas variables
     this.canvasCtx = this.elemVisualizer.getContext('2d', { alpha: false });
@@ -210,9 +224,24 @@ class SortingVisualizer extends SortingAlgorithms {
 
   // used by other methods
   getOptions() {
+
+    // convert linear range to exponential
+    // https://stackoverflow.com/questions/846221/logarithmic-slider
+    function recalcToExp(value, min, max) {
+      let minLog, maxLog, scale, expValue;
+      minLog = Math.log(min);
+      maxLog = Math.log(max);
+
+      scale = (maxLog - minLog) / (max - min);
+
+      expValue = Math.ceil(Math.exp( (value - min) * scale + minLog ));
+
+      return expValue;
+    }
+
     this.activeAlgorithm = this.elemAlgorythmList.value.split(",");
     this.arrLength = this.elemArrayLen.value;
-    this.arrMaxValue = this.elemMaxVal.value;
+    this.arrMaxValue = recalcToExp(this.elemMaxVal.value, this.ARR_MAX_VALUE_MIN, this.ARR_MAX_VALUE_MAX);
     this.speed = this.elemSpeed.value;
   }
   generateArray() {
@@ -233,13 +262,16 @@ class SortingVisualizer extends SortingAlgorithms {
       
       lineYEnd = 0;
     } else {
-      this.canvasCtx.strokeStyle = "black";
+      if (marked) {
+        this.canvasCtx.strokeStyle = "red";
+      } else {
+        this.canvasCtx.strokeStyle = "black";
+      }
       this.canvasCtx.lineWidth = this.barFullWidth / 2;
 
       lineYEnd = Math.ceil( this.elemVisualizer.height - (this.elemVisualizer.height * value / this.canvasArrMaxValue) );
     }
-    if (marked) {this.canvasCtx.strokeStyle = "red";}
-
+    
     this.canvasCtx.beginPath();
     this.canvasCtx.moveTo(increment * this.barFullWidth - this.barFullWidth/2, this.elemVisualizer.height);
     this.canvasCtx.lineTo(increment * this.barFullWidth - this.barFullWidth/2, lineYEnd);
@@ -248,8 +280,11 @@ class SortingVisualizer extends SortingAlgorithms {
   // Changes bar color from marked to default
   unmarkBar() {
     if (this.barPreviousRed) {
-      this.drawLine(this.barPreviousRed[1], true, false,  this.barPreviousRed[0]);
-      this.drawLine(this.barPreviousRed[1], false, false, this.barPreviousRed[0]);
+      //log(this.barPreviousRed);
+      this.drawLine(this.barPreviousRed[0][1], true, false,  this.barPreviousRed[0][0]);
+      this.drawLine(this.barPreviousRed[0][1], false, false, this.barPreviousRed[0][0]);
+      this.drawLine(this.barPreviousRed[1][1], true, false,  this.barPreviousRed[1][0]);
+      this.drawLine(this.barPreviousRed[1][1], false, false, this.barPreviousRed[1][0]);
       this.barPreviousRed = undefined;
     }
   }
@@ -279,19 +314,20 @@ class SortingVisualizer extends SortingAlgorithms {
     this.drawLine(genValues[2], true, false);
 
     // Draw swapped bars
-    this.drawLine(genValues[1], false, false);
+    this.drawLine(genValues[1], false, true);
     this.drawLine(genValues[2], false, true);
 
     // Save red bar value and index for changing color back to black on next cycle
-    this.barPreviousRed = [this.array[genValues[2]], genValues[2]];
+    this.barPreviousRed = [[this.array[genValues[2]], genValues[2]], [this.array[genValues[1]], genValues[1]]];
   }
   updateStateInHTML() {this.elemState.innerText = this.appState;}
   visualizerLoop() {
     let genValues = this.arrGenerator.next().value;
+    //log(genValues);
     if (genValues) {
       this.array = genValues[0];
       this.elemCycle.innerText = parseInt(this.elemCycle.innerText) + 1;
-      // this.drawCanvas();
+      //this.drawCanvas();
       this.updateCanvas(genValues);
     } else {
       this.appState = "finished";
@@ -359,22 +395,27 @@ class SortingVisualizer extends SortingAlgorithms {
     this.elemSpeed.value = this.SPEED_DEFAULT;
 
     // Add event listeners for input elements
+    //
+    // Apply algorithm select change
     this.elemAlgorythmList.addEventListener("input", () => {
       this.getOptions();
       if (this.appState == "finished" || this.appState == "reset") {
         this.getGenerator();
       }    
     });
+    // Apply array length select if app finished or reset
     this.elemArrayLen.addEventListener("mouseup", () => {
       if (this.appState == "finished" || this.appState == "reset") {
         this.ApplyAndReset();
       }
     });
+    // Max value select if app finished or reset
     this.elemMaxVal.addEventListener("mouseup", () => {
       if (this.appState == "finished" || this.appState == "reset") {
         this.ApplyAndReset();
       }
     });
+    // Updates App speed on runtime
     this.elemSpeed.addEventListener("input", (e) => {
       this.speed = e.target.value;
       if (this.appState == "running") {
