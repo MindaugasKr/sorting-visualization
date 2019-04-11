@@ -11,3 +11,10 @@ v 0.2
 	Implemented updateCanvas.
 	Moved bar is now colored red.
 	Fixed speed control adding additional interval.
+
+v 0.3
+	Array length and Max value ranges show result immediately if app is in reset or finished states.
+	Added more sorting algorithms: insertion, heap.
+
+
+

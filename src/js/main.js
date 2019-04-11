@@ -5,21 +5,100 @@ var log = console.log;
 class SortingAlgorithms {
   constructor() {
     this.algorithms = {
-      "Bubble": {bubble: function*(arr) {
-        let temp;
-        for (let x = 0; x < arr.length - 1 ; x++) {
-          for (let y = 0; y < arr.length - x - 1; y++) {
-            if (arr[y] > arr[y + 1]) {
-              temp = arr[y];
-              arr[y] = arr[y + 1];
-              arr[y + 1] = temp;
+      "Bubble": {
+        bubble: function*(arr) {
+          let temp;
+          for (let x = 0; x < arr.length - 1 ; x++) {
+            for (let y = 0; y < arr.length - x - 1; y++) {
+              if (arr[y] > arr[y + 1]) {
+                temp = arr[y];
+                arr[y] = arr[y + 1];
+                arr[y + 1] = temp;
+              }
+              yield [arr, y, y+1];
             }
-            yield [arr, y, y+1];
           }
-        }
-      }},
-      "Simple": {insertions() {}, selection() {}},
-      "Eficient": {merge() {}, heap() {}, quick() {}}
+        }},
+      "Simple": {
+        // credit: https://www.geeksforgeeks.org/insertion-sort/
+        insertion: function*(arr) {
+          let key, j;
+          for (let i = 1; i < arr.length; i++) {
+            key = arr[i];
+            j = i -1;
+
+            while (j >= 0 && arr[j] > key) { 
+              arr[j + 1] = arr[j]; 
+              j = j - 1; 
+              yield [arr, j, j+1];
+              // yield [arr, j+1, j];
+            } 
+            arr[j + 1] = key; 
+            
+            yield [arr, j, j+1];
+            // yield [arr, j+1, j];
+          }
+        },
+        // selection() {}
+      },
+      "Eficient": {
+        // merge() {},
+        // credit: https://www.w3resource.com/javascript-exercises/searching-and-sorting-algorithm/searching-and-sorting-algorithm-exercise-3.php
+        heap: function*(input) {
+
+          var array_length = input.length;
+          let values; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+          function swap(input, index_A, index_B) {
+            var temp = input[index_A];
+        
+            input[index_A] = input[index_B];
+            input[index_B] = temp;
+
+            return [input, index_A, index_B]; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          }
+          function heap_root(input, i) {
+            var left = 2 * i + 1;
+            var right = 2 * i + 2;
+            var max = i;
+            let values;  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+            if (left < array_length && input[left] > input[max]) {
+              max = left;
+            }
+
+            if (right < array_length && input[right] > input[max]){
+              max = right;
+            }
+
+            if (max != i) {
+              values = swap(input, i, max);  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+              heap_root(input, max);
+            }
+            
+            
+            if (values) {return values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          }
+
+
+
+          for (var i = Math.floor(array_length / 2); i >= 0; i -= 1) {
+              values = heap_root(input, i); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+              if (values) {yield values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            }
+      
+          for (i = input.length - 1; i > 0; i--) {
+            yield swap(input, 0, i);
+            array_length--;
+          
+          
+            values = heap_root(input, 0); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            if (values) {yield values;} // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            
+          }
+        },
+        // quick() {}
+      }
     }
   }
 }
@@ -69,7 +148,7 @@ class SortingVisualizer extends SortingAlgorithms {
 
     // Constants
     this.ARR_LENGTH_MIM = 2;
-    this.ARR_LENGTH_MAX = parseInt(this.elemVisualizer.width / 3);
+    this.ARR_LENGTH_MAX = parseInt(this.elemVisualizer.width / 3.3);
     this.ARR_LENGTH_DEFAULT = this.ARR_LENGTH_MAX;
     //
     this.SPEED_MIN = 1;
@@ -116,18 +195,18 @@ class SortingVisualizer extends SortingAlgorithms {
 
   // Check if values are within bounds
   // Used through event listener
-  enforceValue(e, min, max) {
-    let value = parseInt(e.target.value);
-    if (!Number.isInteger(value)) {
-      e.target.value = min;
-    }
-    else if (value < min) {
-      e.target.value = min;
-    }
-    else if (value > max) {
-      e.target.value = max;
-    }
-  }
+  // enforceValue(e, min, max) {
+  //   let value = parseInt(e.target.value);
+  //   if (!Number.isInteger(value)) {
+  //     e.target.value = min;
+  //   }
+  //   else if (value < min) {
+  //     e.target.value = min;
+  //   }
+  //   else if (value > max) {
+  //     e.target.value = max;
+  //   }
+  // }
 
   // used by other methods
   getOptions() {
@@ -140,6 +219,9 @@ class SortingVisualizer extends SortingAlgorithms {
     this.array = new Array(parseInt(this.arrLength))
       .fill(this.arrMaxValue)
       .map( num => Math.ceil(Math.random()*num) );
+  }
+  getGenerator() {
+    this.arrGenerator = this.algorithms[this.activeAlgorithm[0]][this.activeAlgorithm[1]](this.array);
   }
   drawLine(index, removeLine, marked, value=this.array[index]) {
     let lineYEnd;
@@ -165,9 +247,11 @@ class SortingVisualizer extends SortingAlgorithms {
   }
   // Changes bar color from marked to default
   unmarkBar() {
-    this.drawLine(this.barPreviousRed[1], true, false,  this.barPreviousRed[0]);
-    this.drawLine(this.barPreviousRed[1], false, false, this.barPreviousRed[0]);
-    this.barPreviousRed = undefined;
+    if (this.barPreviousRed) {
+      this.drawLine(this.barPreviousRed[1], true, false,  this.barPreviousRed[0]);
+      this.drawLine(this.barPreviousRed[1], false, false, this.barPreviousRed[0]);
+      this.barPreviousRed = undefined;
+    }
   }
   drawCanvas() {
     // Calculates line width
@@ -188,9 +272,7 @@ class SortingVisualizer extends SortingAlgorithms {
   updateCanvas(genValues) {
     // Delete previous red
     // Redraw previous red as black
-    if (this.barPreviousRed) {
-      this.unmarkBar();
-    }
+    this.unmarkBar();
 
     // Delete swapped bars
     this.drawLine(genValues[1], true, false);
@@ -246,18 +328,17 @@ class SortingVisualizer extends SortingAlgorithms {
     } else {
       this.startApp();
     }
-   
   }
   ApplyAndReset() {
     if (this.appState == "running") {
       this.stopApp()}
-    if (this.barPreviousRed) {this.unmarkBar();}
+    this.unmarkBar();
     this.elemCycle.innerText = 0;
     this.appState = "reset";
     this.updateStateInHTML();
     this.getOptions();
     this.generateArray();
-    this.arrGenerator = this.algorithms[this.activeAlgorithm[0]][this.activeAlgorithm[1]](this.array);
+    this.getGenerator();
     this.drawCanvas();
   }
 
@@ -278,6 +359,22 @@ class SortingVisualizer extends SortingAlgorithms {
     this.elemSpeed.value = this.SPEED_DEFAULT;
 
     // Add event listeners for input elements
+    this.elemAlgorythmList.addEventListener("input", () => {
+      this.getOptions();
+      if (this.appState == "finished" || this.appState == "reset") {
+        this.getGenerator();
+      }    
+    });
+    this.elemArrayLen.addEventListener("mouseup", () => {
+      if (this.appState == "finished" || this.appState == "reset") {
+        this.ApplyAndReset();
+      }
+    });
+    this.elemMaxVal.addEventListener("mouseup", () => {
+      if (this.appState == "finished" || this.appState == "reset") {
+        this.ApplyAndReset();
+      }
+    });
     this.elemSpeed.addEventListener("input", (e) => {
       this.speed = e.target.value;
       if (this.appState == "running") {
