@@ -2,12 +2,6 @@
 
 // mostly based on https://gist.github.com/jeromecoupe/0b807b0c1050647eb340360902c3203a
 
-
-// make fast and slow versions - for watch and for build
-
-
-
-
 const gulp = require("gulp");
 // css
 const sass = require("gulp-sass");
@@ -27,9 +21,9 @@ const plumber = require("gulp-plumber");
 // other
 const cp = require("child_process");
 // installed but unused:
-// const webpack = require("webpack");
-// const webpackconfig = require("./webpack.config.js");
-// const webpackstream = require("webpack-stream");
+const webpack = require("webpack");
+const webpackconfig = require("./webpack.config.js");
+const webpackstream = require("webpack-stream");
 
 
 // BrowserSync
@@ -43,7 +37,7 @@ function browserSync(done) {
     }
   );
   done();
-};
+}
 
 // browserSync Reload
 function browserSyncReload(done) {
@@ -56,7 +50,7 @@ function css() {
   return gulp
     .src("./src/scss/main.scss")
     .pipe(plumber())
-    .pipe(sass({ outputStyle: "expanded" })) // <<<< padaryt priklausomai nuo build ar watch
+    .pipe(sass({ outputStyle: "expanded" }))
     //.pipe(gulp.dest("./dist/css/main.css"))
     .pipe(postcss([autoprefixer(), cssnano()]))
     .pipe(gulp.dest("./dist/css/"))
@@ -78,10 +72,11 @@ function scripts() {
   return gulp
     .src("./src/js/*.js")
     .pipe(plumber())
-/*     .pipe(babel({
-            presets: ['@babel/env']
-        }))
-    .pipe(uglifyjs()) */
+    // .pipe(babel({
+    //         presets: ['@babel/env'], plugins: ['@babel/transform-runtime']
+    //     }))
+    .pipe(webpackstream(webpackconfig, webpack))
+    // .pipe(uglifyjs())
     .pipe(gulp.dest("./dist/js/"))
     .pipe(browsersync.stream());
 }

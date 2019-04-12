@@ -235,26 +235,25 @@ class SortingVisualizer extends SortingAlgorithms {
   // }
 
   // used by other methods
-  getOptions() {
-
+  recalcToExp(value, min, max) {
     // convert linear range to exponential
     // https://stackoverflow.com/questions/846221/logarithmic-slider
-    function recalcToExp(value, min, max) {
-      let minLog, maxLog, scale, expValue;
-      minLog = Math.log(min);
-      maxLog = Math.log(max);
+    
+    let minLog, maxLog, scale, expValue;
+    minLog = Math.log(min);
+    maxLog = Math.log(max);
 
-      scale = (maxLog - minLog) / (max - min);
+    scale = (maxLog - minLog) / (max - min);
 
-      expValue = Math.ceil(Math.exp( (value - min) * scale + minLog ));
-
-      return expValue;
-    }
-
+    expValue = Math.ceil(Math.exp( (value - min) * scale + minLog ));
+    //log(`input: ${value}, output: ${expValue}`);
+    return expValue;
+  }
+  getOptions() {
     this.activeAlgorithm = this.elemAlgorythmList.value.split(",");
     this.arrLength = this.elemArrayLen.value;
-    this.arrMaxValue = recalcToExp(this.elemMaxVal.value, this.ARR_MAX_VALUE_MIN, this.ARR_MAX_VALUE_MAX);
-    this.speed = this.elemSpeed.value;
+    this.arrMaxValue = this.recalcToExp(this.elemMaxVal.value, this.ARR_MAX_VALUE_MIN, this.ARR_MAX_VALUE_MAX);
+    this.speed = this.recalcToExp(this.elemSpeed.value, this.SPEED_MIN, this.SPEED_MAX);//this.elemSpeed.value;
   }
   generateArray() {
     this.array = new Array(parseInt(this.arrLength))
@@ -337,10 +336,12 @@ class SortingVisualizer extends SortingAlgorithms {
     this.elemCurValArrLen.innerText = this.elemArrayLen.value;
   }
   updateDisplayCurValMaxVal() {
-    this.elemCurValMaxVal.innerText = this.elemMaxVal.value;
+    // this.elemCurValMaxVal.innerText = this.elemMaxVal.value;
+    this.elemCurValMaxVal.innerText = this.recalcToExp(this.elemMaxVal.value, this.ARR_MAX_VALUE_MIN, this.ARR_MAX_VALUE_MAX);
   }
   updateDisplayCurValSpeed() {
-    this.elemCurValSpeed.innerText = `${parseInt(1000 / this.elemSpeed.value)} ms`;
+    // this.elemCurValSpeed.innerText = `${parseInt(1000 / this.elemSpeed.value)} ms`;
+    this.elemCurValSpeed.innerText = `${parseInt(1000 / this.recalcToExp(this.elemSpeed.value, this.SPEED_MIN, this.SPEED_MAX))} ms`;
   }
   visualizerLoop() {
     let genValues = this.arrGenerator.next().value;
@@ -449,8 +450,9 @@ class SortingVisualizer extends SortingAlgorithms {
     // Update in app current max array value displayed value
     this.elemMaxVal.addEventListener("input", this.updateDisplayCurValMaxVal.bind(this) );
     // Updates App speed on runtime && update in app current speed displayed value
-    this.elemSpeed.addEventListener("input", (e) => {
-      this.speed = e.target.value;
+    this.elemSpeed.addEventListener("input", () => {
+      // this.speed = e.target.value;
+      this.speed = this.recalcToExp(this.elemSpeed.value, this.SPEED_MIN, this.SPEED_MAX);
       this.updateDisplayCurValSpeed();
       if (this.appState == "running") {
         clearInterval(this.appInterval);
@@ -466,4 +468,5 @@ class SortingVisualizer extends SortingAlgorithms {
   }
 }
 
-var test = new SortingVisualizer();
+
+var visualizer = new SortingVisualizer();
