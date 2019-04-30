@@ -1,29 +1,26 @@
 "use strict";
 
-// mostly based on https://gist.github.com/jeromecoupe/0b807b0c1050647eb340360902c3203a
-
 const gulp = require("gulp");
 // css
 const sass = require("gulp-sass");
+sass.compiler = require('node-sass');
 const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const postcss = require("gulp-postcss");
 // js
 const eslint = require("gulp-eslint");
-const uglifyjs = require('gulp-uglify');
-const babel = require('gulp-babel');
-// html
-const uglifyhtml = require('html-minifier').minify;
 // live server
 const browsersync = require("browser-sync").create();
 // mario
 const plumber = require("gulp-plumber");
-// other
-const cp = require("child_process");
 // installed but unused:
 const webpack = require("webpack");
 const webpackconfig = require("./webpack.config.js");
 const webpackstream = require("webpack-stream");
+
+
+// let production = true;
+
 
 
 // BrowserSync
@@ -38,64 +35,73 @@ function browserSync(done) {
   );
   done();
 }
-
 // browserSync Reload
 function browserSyncReload(done) {
   browsersync.reload();
   done();
 }
 
+
+
+
 // CSS tasks
-function css() {
+function css(production) {
+  let outputStyle = production ? "compressed" : "nested";
+  let postCssplugins = [autoprefixer({
+    "browsers": [
+      "IE 9"
+]})];
+  if (production) postCssplugins.push(cssnano());
   return gulp
     .src("./src/scss/main.scss")
     .pipe(plumber())
-    .pipe(sass({ outputStyle: "expanded" }))
-    //.pipe(gulp.dest("./dist/css/main.css"))
-    .pipe(postcss([autoprefixer(), cssnano()]))
+    .pipe(sass({ outputStyle: outputStyle}))
+    .pipe(postcss(postCssplugins))
     .pipe(gulp.dest("./dist/css/"))
     .pipe(browsersync.stream());
 }
+let cssP = css.bind(null, true);
+let cssD = css.bind(null, false);
 
 // Lint scripts
 function scriptsLint() {
   return gulp
     .src("./src/js/*.js")
     .pipe(plumber())
-    .pipe(eslint())
+    .pipe(eslint({
+      "parserOptions": {
+          "sourceType": "module"
+      }
+  }))
     .pipe(eslint.format());
-    //.pipe(eslint.failAfterError());
 }
 
 // minify scripts
-function scripts() {
+function scripts(production) {
   return gulp
     .src("./src/js/*.js")
     .pipe(plumber())
-    // .pipe(babel({
-    //         presets: ['@babel/env'], plugins: ['@babel/transform-runtime']
-    //     }))
-    .pipe(webpackstream(webpackconfig, webpack))
-    // .pipe(uglifyjs())
-    .pipe(gulp.dest("./dist/js/"))
+    .pipe(webpackstream(webpackconfig(production ? 'production' : 'development'), webpack))
+    .pipe(gulp.dest("./dist"))
     .pipe(browsersync.stream());
 }
+let scriptsP = scripts.bind(null, true);
+let scriptsD = scripts.bind(null, false);
 
 // HTML
 function html() {
   return gulp
     .src("./src/*.html")
     .pipe(plumber())
-    //.pipe(uglifyhtml())
     .pipe(gulp.dest("./dist/"))
     .pipe(browsersync.stream());
 }
 
 // watch files
 function watchFiles() {
-  gulp.watch("./src/scss/main.scss", css);
-  gulp.watch("./src/js/*.js", gulp.series(scriptsLint, scripts));
-  gulp.watch("./src/*.html", html); // <<< HTML
+  gulp.watch("./src/scss/*.scss", cssD);
+  gulp.watch("./src/js/*.js", gulp.series(scriptsLint, scriptsD));
+  gulp.watch("./src/*.html", html);
   gulp.watch(
     [
       "./_includes/**/*",
@@ -109,14 +115,17 @@ function watchFiles() {
 }
 
 // complex tasks
-const js = gulp.series(scriptsLint, scripts);
-const build = gulp.parallel(css, js); // <<< HTML
+const jsP = gulp.series(scriptsLint, scriptsP);
+const jsD = gulp.series(scriptsLint, scriptsD);
+const buildP = gulp.parallel(cssP, jsP, html);
+const buildD = gulp.parallel(cssD, jsD, html);
 const watch = gulp.parallel(watchFiles, browserSync);
 
 // export tasks
-exports.css = css;
-exports.js = js;
+exports.css = cssD;
+exports.js = jsD;
 exports.html = html;
-exports.build = build;
+exports.buildP = buildP;
+exports.buildD = buildD;
 exports.watch = watch;
-exports.default = build;
+exports.default = buildP;

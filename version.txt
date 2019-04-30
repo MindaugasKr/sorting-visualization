@@ -26,3 +26,6 @@ v 0.5
 	Added counter name.
 	Range current values are now displayed on screen.
 
+v 0.5.1 
+	Restructured code to follow module pattern.
+

@@ -97,8 +97,13 @@ body {
   background-color: orange;
   font-weight: bold;
   border: none;
+  width: 60px;
 
   &:hover {
     background-color: rgb(255, 195, 71);
   }
+}
+.sadasd {
+  display: grid;
+  display: flex;
 }
